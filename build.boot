@@ -22,7 +22,7 @@
   (comp (cljs :ids #{"main"}
               :optimizations :simple)
         (cljs :ids #{"renderer"}
-              :optimizations :advanced)
+              :optimizations :simple)
         (target)))
 
 (deftask run []
