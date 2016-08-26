@@ -1,0 +1,27 @@
+body {
+    margin: 0;
+    background: #212121;
+    color: white;
+}
+
+h1 {
+    margin: 10px 0;
+}
+
+#close {
+    width: 20px;
+    height: 100vh;
+    background: #b71c1c;
+    float: right;
+}
+
+#result {
+    position: absolute;
+    left: 0;
+    top: 0;
+    max-height: 100vh;
+    overflow: auto;
+    margin-right: 20px;
+    box-sizing: border-box;
+    padding: 10px;
+}
