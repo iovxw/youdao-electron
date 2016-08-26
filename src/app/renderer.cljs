@@ -58,7 +58,11 @@
       (.-innerText v))))
 
 (defn render-result [word]
-  (go (let [url (str youdao-url word)
+  (reset! result [:div#result
+                  [:h1#loading "加载中……"]])
+  (go
+    (try
+      (let [url (str youdao-url word)
             resp (<! (http/get url))
             dom (-> resp :body get-body-elm remove-script-elm html-to-dom)]
         (reset! result [:div#result
@@ -70,7 +74,10 @@
                                           [:a {:href (:audio r)}]])]
                         [:ul (for [r (get-value dom)]
                                ^{:key r}
-                               [:li r])]]))))
+                               [:li r])]]))
+      (catch :default e
+        (reset! result [:div#result
+                        [:h1#error "加载出错"]])))))
 
 (defn body []
   [:div#box [:div#close {:on-mouse-over #(.hide current-window)}]
