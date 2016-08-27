@@ -46,45 +46,50 @@
 (def main-window (atom nil))
 
 (defn mk-window [w h frame? show? & {:keys [skip-taskbar min-width min-height
-                                            always-on-top]}]
+                                            always-on-top focusable resizable]}]
   (BrowserWindow. (clj->js {:width w :height h :frame frame? :show show?
                             :minWidth min-width :minHeight min-height
                             :skipTaskbar skip-taskbar
-                            :alwaysOnTop always-on-top})))
+                            :alwaysOnTop always-on-top
+                            :focusable focusable
+                            :resizable resizable})))
+
+(def tray (atom nil))
 
 (enable-console-print!)
 
 (defn init-browser []
-  (reset! main-window (mk-window 300 200 false false
-                                 :min-width 250 :min-height 150
+  (reset! main-window (mk-window 350 200 false false
                                  :always-on-top true
-                                 :skip-taskbar true))
+                                 :skip-taskbar true
+                                 :focusable false
+                                 :resizable false))
   (load-page @main-window)
-  (if dev? (.openDevTools @main-window))
+  (when dev?
+    (.openDevTools @main-window)
+    (.setSize @main-window 800 600))
 
   (registr-global-shortcut "Shift+CommandOrControl+X"
-                           #(if (.isVisible @main-window)
-                              (.hide @main-window)
-                              (let [screen (.-screen electron)
-                                    cursor-point (get-cursor-point screen)]
-                                (.setPosition @main-window
-                                              (.-x cursor-point) (.-y cursor-point))
-                                (.showInactive @main-window)
-                                (.send (.-webContents @main-window)
-                                       "translate" (read-selection-text)))))
+                           #(let [screen (.-screen electron)
+                                  cursor-point (get-cursor-point screen)]
+                              (.setPosition @main-window
+                                            (.-x cursor-point) (.-y cursor-point))
+                              (.showInactive @main-window)
+                              (.send (.-webContents @main-window)
+                                     "translate" (read-selection-text))))
 
-  (let [tary (Tray. (resource "icon.png"))
+  (let [t (Tray. (resource "icon.png"))
         menu (build-menu [{:label "Exit"
                            :click #(.quit app)}])]
-    (.setToolTip tary "youdao-electron")
-    (.setContextMenu tary menu))
-
-  (.on @main-window "blur" #(.hide @main-window))
+    (.setToolTip t "youdao-electron")
+    (.setContextMenu t menu)
+    (reset! tray t))
 
   (.on @main-window "closed" #(reset! main-window nil)))
 
 (defn init []
   (.on app "window-all-closed" #(when-not (= js/process.platform "darwin") (.quit app)))
-  (.on app "will-quit" #(unregistr-all-global-shortcut))
+  (.on app "will-quit" #(do (unregistr-all-global-shortcut)
+                            (.destroy @tray)))
   (.on app "ready" init-browser)
   (set! *main-cli-fn* (fn [] nil)))
