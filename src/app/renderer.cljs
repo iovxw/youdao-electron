@@ -69,9 +69,12 @@
                         [:h1 word]
                         [:div.phonetic (for [r (get-phonetic dom)]
                                          ^{:key (:type r)}
-                                         [:span (:type r)
-                                          [:span (:phonetic r)]
-                                          [:a {:href (:audio r)}]])]
+                                         [:a (:type r)
+                                          [:a (:phonetic r)]
+                                          [:a.audio {:on-click
+                                                     #(-> % .-target .-children array-seq first .play)}
+                                           "🔊"
+                                           [:audio {:src (:audio r)}]]])]
                         [:ul (for [r (get-value dom)]
                                ^{:key r}
                                [:li r])]]))
@@ -83,6 +86,10 @@
   [:div#box [:div#close {:on-mouse-over #(.hide current-window)}]
    @result])
 
+(def old-word (atom nil))
+
 (defn init []
-  (on-ipc-msg "translate" #(render-result %2))
+  (on-ipc-msg "translate" #(when-not (= %2 @old-word)
+                             (render-result %2)
+                             (reset! old-word %2)))
   (r/render-component [body] (.-body js/document)))

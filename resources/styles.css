@@ -9,6 +9,14 @@ h1 {
     margin: 10px 0;
 }
 
+a {
+    margin: 0 3px;
+}
+
+.audio {
+    cursor: pointer;
+}
+
 #close {
     position: absolute;
     right: 0;
