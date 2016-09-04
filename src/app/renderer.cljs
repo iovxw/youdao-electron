@@ -40,12 +40,11 @@
 (defn get-phonetic [dom]
   (let [div (first (get-elem-by-tag dom "div"))
         spans (get-elem-by-tag div "span")]
-    (remove nil?
-            (for [span spans]
-              (when-let [phonetic (first (get-elem-by-class span "phonetic"))]
-                {:type (-> span .-childNodes array-seq first .-textContent string/trim)
-                 :phonetic (.-innerText phonetic)
-                 :audio (-> span (get-elem-by-tag "a") first (.getAttribute "data-rel"))})))))
+    (keep #(when-let [phonetic (first (get-elem-by-class % "phonetic"))]
+             {:type (-> % .-childNodes array-seq first .-textContent string/trim)
+              :phonetic (.-innerText phonetic)
+              :audio (-> % (get-elem-by-tag "a") first (.getAttribute "data-rel"))})
+          spans)))
 
 (defn get-value [dom]
   (let [values (-> dom
